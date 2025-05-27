@@ -16,7 +16,7 @@ const schema = yup.object({
         .string()
         .min(6, 'La contraseña debe tener al menos 6 caracteres')
         .required('La contraseña es obligatoria'),
-    rememberMe: yup.boolean().optional(),
+    rememberMe: yup.boolean(),
 });
 
 type FormData = {
@@ -32,7 +32,7 @@ const LoginForm: React.FC = () => {
         register,
         handleSubmit,
         formState: { errors },
-    } = useForm<FormData>({
+    } = useForm({
         resolver: yupResolver(schema),
     });
 
@@ -49,7 +49,11 @@ const LoginForm: React.FC = () => {
             // Si no hay error, la cookie ya está guardada, redirige al dashboard
             navigate('/dashboard');
         } catch (error) {
-            console.error('Error al iniciar sesión:', error.message);
+            if (error instanceof Error) {
+                console.error('Error al iniciar sesión:', error.message);
+            } else {
+                console.error('Error al iniciar sesión:', error);
+            }
             alert('Credenciales incorrectas o error del servidor');
         }
     };

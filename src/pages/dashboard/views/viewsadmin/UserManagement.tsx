@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, ReactNode } from 'react';
 import {
     Box, Typography, Table, TableBody, TableCell, TableContainer,
     TableHead, TableRow, Paper, Button, Chip, Dialog, DialogTitle,
@@ -8,6 +8,7 @@ import {
 import { fetcher } from '../../../../services/fetcher';
 
 interface User {
+    nombre: ReactNode;
     id: number;
     username: string;
     email: string;
@@ -60,6 +61,7 @@ const UserManagement: React.FC = () => {
 
             setAlert({ message: 'Rol actualizado exitosamente', severity: 'success' });
             setOpenDialog(false);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             setAlert({ message: 'Error al actualizar el rol', severity: 'error' });
         }
@@ -80,10 +82,21 @@ const UserManagement: React.FC = () => {
                 message: `Usuario ${!isActive ? 'activado' : 'desactivado'} exitosamente`,
                 severity: 'success'
             });
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
         } catch (error) {
             setAlert({ message: 'Error al cambiar el estado del usuario', severity: 'error' });
         }
     };
+
+    if (loading) {
+        return (
+            <Box className="p-6 bg-gray-100 min-h-screen flex justify-center items-center">
+                <Typography variant="h6" className="text-gray-800">
+                    Cargando usuarios...
+                </Typography>
+            </Box>
+        );
+    }
 
     return (
         <Box className="p-6 bg-gray-100 min-h-screen">

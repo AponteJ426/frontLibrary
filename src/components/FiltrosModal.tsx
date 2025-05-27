@@ -1,19 +1,24 @@
 // FiltrosModal.tsx
 import { useState } from 'react';
-import { Modal, Box, Typography, Button, FormControlLabel, Checkbox, Slider, Divider, Switch } from '@mui/material';
+import { Modal, Box, Typography, Button, FormControlLabel, Checkbox, Divider, Switch } from '@mui/material';
 
-const FiltrosModal = ({ open, onClose, filtros, setFiltros, buscarPorLetra, setBuscarPorLetra, letraSeleccionada, setLetraSeleccionada }) => {
-    const [tempFiltros, setTempFiltros] = useState(filtros);
+interface FiltrosModalProps {
+    open: boolean;
+    onClose: () => void;
+    filtros: Record<string, unknown>;
+    setFiltros: (filtros: Record<string, boolean | string | number>) => void;
+    buscarPorLetra: boolean;
+    setBuscarPorLetra: (value: boolean) => void;
+    letraSeleccionada: string;
+    setLetraSeleccionada: (letra: string) => void;
+}
+
+const FiltrosModal: React.FC<FiltrosModalProps> = ({ open, onClose, filtros, setFiltros, buscarPorLetra, setBuscarPorLetra, letraSeleccionada, setLetraSeleccionada }) => {
+    const [tempFiltros, setTempFiltros] = useState<Record<string, string | number | boolean>>(filtros as Record<string, string | number | boolean>);
     const letras = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
 
-    const handleChange = (e) => {
-        setTempFiltros({
-            ...tempFiltros,
-            [e.target.name]: e.target.value
-        });
-    };
 
-    const handleCheckbox = (e) => {
+    const handleCheckbox = (e: React.ChangeEvent<HTMLInputElement>) => {
         setTempFiltros({
             ...tempFiltros,
             [e.target.name]: e.target.checked
@@ -94,7 +99,7 @@ const FiltrosModal = ({ open, onClose, filtros, setFiltros, buscarPorLetra, setB
                         <FormControlLabel
                             control={
                                 <Checkbox
-                                    checked={tempFiltros.soloDisponibles || false}
+                                    checked={!!tempFiltros?.soloDisponibles}
                                     onChange={handleCheckbox}
                                     name="soloDisponibles"
                                 />
@@ -105,7 +110,7 @@ const FiltrosModal = ({ open, onClose, filtros, setFiltros, buscarPorLetra, setB
                         <FormControlLabel
                             control={
                                 <Checkbox
-                                    checked={tempFiltros.soloConImagen || true}
+                                    checked={!!tempFiltros.soloConImagen}
                                     onChange={handleCheckbox}
                                     name="soloConImagen"
                                 />
@@ -119,7 +124,7 @@ const FiltrosModal = ({ open, onClose, filtros, setFiltros, buscarPorLetra, setB
                         <Button
                             variant="outlined"
                             onClick={() => {
-                                setTempFiltros(filtros);
+                                setTempFiltros(filtros as Record<string, string | number | boolean>);
                                 onClose();
                             }}
                         >

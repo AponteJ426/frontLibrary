@@ -5,26 +5,35 @@ import LibroModal from '../../../components/LibroModal';
 import { fetcher } from '../../../services/fetcher'; // Ajusta la ruta según tu estructura de proyecto
 
 const Biblioteca = () => {
-    const [libros, setLibros] = useState([]);
+    interface Libro {
+        id: string;
+        titulo: string;
+        autor: string;
+        descripcion: string;
+        imagen: string;
+        link: string;
+    }
+
+    const [libros, setLibros] = useState<Libro[]>([]);
     const [busqueda, setBusqueda] = useState('');
     const [letraSeleccionada, setLetraSeleccionada] = useState('A');
     const [cargando, setCargando] = useState(false);
     const [modalAbierto, setModalAbierto] = useState(false);
-    const [libroSeleccionado, setLibroSeleccionado] = useState(null);
+    const [libroSeleccionado, setLibroSeleccionado] = useState<Libro | null>(null);
     const [buscarPorLetra, setBuscarPorLetra] = useState(false);
     const [favoritos, setFavoritos] = useState([]);
     const [enviandoFavorito, setEnviandoFavorito] = useState(false);
 
     const letras = [...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'];
 
-    const obtenerLibrosGoogle = async (query) => {
+    const obtenerLibrosGoogle = async (query: string | number | boolean) => {
         try {
             const res = await fetch(
                 `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20`
             );
             const data = await res.json();
             return (
-                data.items?.map((item) => ({
+                data.items?.map((item: { id: any; volumeInfo: { title: any; authors: any[]; description: any; imageLinks: { thumbnail: any; }; infoLink: any; }; }) => ({
                     id: item.id,
                     titulo: item.volumeInfo.title,
                     autor: item.volumeInfo.authors?.join(', ') || 'Autor desconocido',
@@ -39,13 +48,13 @@ const Biblioteca = () => {
         }
     };
 
-    const obtenerLibrosOpenLibrary = async (query) => {
+    const obtenerLibrosOpenLibrary = async (query: string | number | boolean) => {
         try {
             const res = await fetch(
                 `https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=20`
             );
             const data = await res.json();
-            return data.docs.map((libro) => ({
+            return data.docs.map((libro: { key: any; title: any; author_name: any[]; first_sentence: any[]; cover_i: any; }) => ({
                 id: libro.key,
                 titulo: libro.title,
                 autor: libro.author_name?.[0] || 'Autor desconocido',
@@ -98,7 +107,7 @@ const Biblioteca = () => {
             : true
     );
 
-    const abrirModal = (libro) => {
+    const abrirModal = (libro: Libro) => {
         setLibroSeleccionado(libro);
         setModalAbierto(true);
     };
@@ -108,7 +117,7 @@ const Biblioteca = () => {
         setLibroSeleccionado(null);
     };
 
-    const toggleFavorito = async (e, libro) => {
+    const toggleFavorito = async (e: React.MouseEvent<HTMLButtonElement>, libro: Libro) => {
         e.stopPropagation(); // Evita que se abra el modal al hacer clic en el corazón
 
         if (enviandoFavorito) return; // Evita múltiples clics rápidos

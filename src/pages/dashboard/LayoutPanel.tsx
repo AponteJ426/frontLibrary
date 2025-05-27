@@ -1,18 +1,26 @@
 // src/components/LayoutPanel.tsx
 import { Outlet, useNavigate } from 'react-router-dom';
 import { AppProvider, DashboardLayout } from '@toolpad/core';
-import DescriptionIcon from '@mui/icons-material/Description';
 import MenuBookTwoToneIcon from '@mui/icons-material/MenuBookTwoTone';
 import HomeTwoToneIcon from '@mui/icons-material/HomeTwoTone'; import { Stack } from '@mui/material';
 import CollectionsBookmarkTwoToneIcon from '@mui/icons-material/CollectionsBookmarkTwoTone';
-import ManageAccountsTwoToneIcon from '@mui/icons-material/ManageAccountsTwoTone';
 import SupportAgentTwoToneIcon from '@mui/icons-material/SupportAgentTwoTone';
 import LogoutTwoToneIcon from '@mui/icons-material/LogoutTwoTone';
 import GridViewTwoToneIcon from '@mui/icons-material/GridViewTwoTone';
 import AdminPanelSettingsTwoToneIcon from '@mui/icons-material/AdminPanelSettingsTwoTone';
 import CreateNewFolderTwoToneIcon from '@mui/icons-material/CreateNewFolderTwoTone'; import { fetcher } from '../../services/fetcher'; // Ajusta la ruta según tu estructura
 import { useAuthVerification } from '../../hooks/useAuthVerification';
+
+interface AuthData {
+    user: {
+        user?: {
+            role?: string;
+            id?: string;
+        };
+    } | null;
+}
 import { useState, useEffect } from 'react';
+import { JSX } from 'react/jsx-runtime';
 
 const NAVIGATION = [
     {
@@ -81,19 +89,27 @@ const NAVIGATION = [
         roles: ['user',],
     },
     {
-        segment: 'logout',
         title: 'Cerrar sesión',
         icon: <LogoutTwoToneIcon />,
         roles: ['user', 'admin'],
     }
 ]
 
+interface NavigationItem {
+    kind?: "page" | undefined;
+    title?: string;
+    segment?: string;
+    icon?: JSX.Element;
+    roles?: string[];
+    children?: NavigationItem[];
+}
 const LayoutPanel = () => {
-    const navigate = useNavigate();
-    const authData = useAuthVerification();
+    const navigate = useNavigate(); // Add this line to define navigate
+    const authData: AuthData = useAuthVerification();
     const [navKey, setNavKey] = useState(0);
 
     // Efecto para re-renderizar cuando cambie el rol del usuario
+
     useEffect(() => {
         setNavKey(prev => prev + 1);
     }, [authData?.user?.user?.role, authData?.user?.user?.id]);
@@ -103,7 +119,8 @@ const LayoutPanel = () => {
         const userRole = authData?.user?.user?.role || 'user';
 
 
-        const filterNavigationItem = (item: any) => {
+
+        const filterNavigationItem = (item: NavigationItem): NavigationItem | null => {
             // Verificar si el usuario tiene acceso a este item
             if (!item.roles || !item.roles.includes(userRole.toLowerCase())) {
                 return null;
@@ -120,14 +137,16 @@ const LayoutPanel = () => {
                     return null;
                 }
 
-                return { ...item, children: filteredChildren };
+                return { ...item, children: filteredChildren as NavigationItem[] };
             }
 
             return item;
         };
 
         return NAVIGATION
-            .map(filterNavigationItem)
+            .map(
+                (item) => filterNavigationItem(item as NavigationItem) // Asegúrate de que item sea del tipo NavigationItem
+            )
             .filter(Boolean);
     };
 
@@ -139,14 +158,16 @@ const LayoutPanel = () => {
             throw error;
         }
     };
-    const handleNavigation = async (path: string) => {
-
+    const handleNavigation = (path: string | URL) => {
         if (path === '/logout') {
-            await handleLogout();
-            navigate('/'); // Redirige a la página de inicio después de cerrar sesión
+            handleLogout().then(() => {
+                navigate('/'); // Redirige a la página de inicio después de cerrar sesión
+            }).catch(error => {
+                console.error('Error during logout navigation:', error);
+            });
             return;
         }
-        navigate(path);
+        navigate(path.toString());
     };
 
     function CustomAppTitle() {
@@ -162,9 +183,11 @@ const LayoutPanel = () => {
     return (
         <AppProvider
             key={navKey}
-            navigation={getFilteredNavigation()}
+            navigation={getFilteredNavigation() as NavigationItem[]}
             router={{
-                navigate: handleNavigation
+                navigate: (path: string | URL) => handleNavigation(path),
+                pathname: window.location.pathname,
+                searchParams: new URLSearchParams(window.location.search),
             }}
         >
             <DashboardLayout

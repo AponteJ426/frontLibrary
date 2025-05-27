@@ -3,10 +3,11 @@ import { CircularProgress } from '@mui/material';
 import { fetcher } from '../../../services/fetcher'; // Ajusta la ruta si es distinta
 
 const Favoritos = () => {
-    const [libros, setLibros] = useState([]);
+    const [libros, setLibros] = useState<Array<{ id: string; titulo: string; autor: string; imagen: string; link: string }>>([]);
     const [cargando, setCargando] = useState(true);
 
-    const fetchLibroGoogle = async (id) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fetchLibroGoogle = async (id: any) => {
         try {
             const res = await fetch(`https://www.googleapis.com/books/v1/volumes/${id}`);
             const data = await res.json();
@@ -31,7 +32,8 @@ const Favoritos = () => {
                 const ids = response.favoritos;
 
                 const detalles = await Promise.all(
-                    ids.map(async (id) => await fetchLibroGoogle(id))
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    ids.map(async (id: any) => await fetchLibroGoogle(id))
                 );
 
                 setLibros(detalles.filter(Boolean)); // Filtra nulos

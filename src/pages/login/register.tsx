@@ -10,7 +10,11 @@ const schema = yup.object({
     password: yup.string().min(6, 'Mínimo 6 caracteres').required('La contraseña es obligatoria'),
 });
 
-type FormData = yup.InferType<typeof schema>;
+type FormData = {
+    nombre: string;
+    email: string;
+    password: string;
+};
 
 const RegisterForm = () => {
     const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
@@ -28,6 +32,7 @@ const RegisterForm = () => {
 
             // Si el registro fue exitoso, la cookie ya está guardada
             navigate('/dashboard');
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (error: any) {
             console.error('Error al registrarse:', error.message);
             alert(error.message || 'Hubo un error. Intenta más tarde.');
